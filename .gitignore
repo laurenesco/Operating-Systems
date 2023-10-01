@@ -1,0 +1,5 @@
+*.exe
+*.trace
+*.listing
+*.object
+

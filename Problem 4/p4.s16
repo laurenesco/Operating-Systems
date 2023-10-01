@@ -1,0 +1,227 @@
+;--------------------------------------------------------
+;
+; Program Name:         p3.s16
+; Date Last Modified:   09/09/2023
+; Last Modified By:     Lauren Escobedo
+;
+; Program Description:  Solution for "Problem 3" - OS
+;
+;--------------------------------------------------------
+
+CODESEGMENT
+
+main							EQU					*
+
+								PUSHR					R1
+								LDAR					R1, prompt1
+								PUSHR					R1
+								CALL					GetInteger
+								POPR					R1
+								POPR					R1
+								STR					R1, n
+
+								ZEROR					R1
+								STR					R1, 1
+FOR1							EQU					*
+								LDR					R1, i
+								LDR 					R2, n
+								DECR					R2
+								CMPR					R1, R2
+								JMPP					R1, endFOR1
+
+; Provide missing code
+
+								LDR					R1, y
+								PUSHR					R1
+								LDAR					R1, xs
+								LDR					R2, i
+								ADDR					R2, R2
+								ADDR					R1, R2
+								PUSHR					R1
+								CALL					SetXToY
+								POPR					R1
+								POPR					R1
+
+								LDR					R1, i
+								INCR					R1
+								STR					R1, i
+								JMP					FOR1
+endFOR1						EQU					*
+
+								ZEROR					R1
+								STR					R1, i
+FOR2							EQU					*
+								LDR					R1, i
+								LDR					R2, n
+								DECR					R2
+								CMPR					R1, R2
+								JMPP					R1, endFOR2
+
+; Provide missing code
+
+								LDR					R1, i
+								INCR					R1
+								STR					R1, i
+								JMP					FOR2
+endFOR2						EQU					*
+
+								LDAR					R1, xs
+								PUSHR					R1
+								LDR					R1, n
+								PUSHR					R1
+								CALL					DisplayXs1
+								POPR					R1
+								POPR					R1
+
+; Provide missing code
+
+                        SVC               #SVC_TERMINATE_PROCESS     ; Exit program
+
+;--------------------------------------------------------
+
+; GetInteger(INBYREF prompt: STR): INT
+
+GetInteger					EQU					*
+								PUSHR					R1
+								PUSHR					R15
+								SETFB					#-10
+
+								LDR					R15, FB:0
+								SVC					#SVC_WRITE_TO_TERMINAL
+
+								LDR					R15, format1
+								SVC					#SVC_WRITE_TO_TERMINAL
+
+								STR					R1, FB:0
+								POPR					R15
+								POPR					R1
+								RET
+
+; SetXToY(IN y: INT, OUTBYREF x: INT)
+
+SetXToY						EQU					*
+								PUSHR					R1
+								SETFB					#-8
+
+								LDR					R1, FB:0
+								STR					R1, @FB:1
+
+								POPR					R1
+								RET
+
+; DoubleX(IOBYREF x: INT)
+
+DoubleX						EQU					*
+								PUSHR					R1
+								PUSHR					R2
+								SETFB					#-8
+
+								LDR					R1, @FB:0
+								ADDR					R1, R1
+								STR					R1, @FB:0
+
+								POPR					R2
+								POPR					R1
+								RET
+
+; DisplayXs1(INBYREF xs[]: INT, IN n: INT)
+
+DisplayXs1					EQU					*
+								PUSHR					R1
+								PUSHR					R2
+								PUSHR					R3
+								PUSHR					R15
+								SETFB					#-14
+
+								ZEROR					R1
+								EQU					*
+								COPYR					R3, R1
+								LDR					R2, FB:1
+								DECR					R2
+								CMPR					R3, R2
+								JMPP					R3, endFOR3
+
+								LDR					R3, FB:0
+								COPYR					R2, R1
+								ADDR					R2, R2
+								ADDR					R3, R2
+								LDR					R2, @R3
+								LDAR					R15, format2
+								SVC					#SVC_WRITE_TO_TERMINAL
+
+								INCR					R1
+								JMP					FOR3
+endFOR3						EQU					*
+
+								LDAR					R15, format3
+								SVC					#SVC_WRITE_TO_TERMINAL
+
+								POPR					R15
+								POPR					R3
+								POPR					R2
+								POPR					R1
+								RET
+
+; DisplayXs2(INBYREF xs[]: INT, IN n: INT)
+
+DisplayXs2					EQU					*
+								PUSHR					R1
+								PUSHR					R2
+								PUHSR					R3
+								PUHSR					R15
+								ADJSP					#2
+								SETFB					#-16
+
+								ZEROR					R1
+								STR					R1, FB:7
+FOR4							EQU					*
+								LDR					R1, FB:7
+								COPYR					R3, R1
+								LDR					R2, FB:1
+								DECR					R2
+								CMPR					R3, R2
+								JMPP					R3, endFOR4
+
+								LDR					R3, FB:0
+								COPYR					R2, R1
+								ADDR					R2, R2
+								ADDR					R3, R2
+								LDR					R2, @R3
+								LDAR					R15, format2
+								SVC					#SVC_WRITE_TO_TERMINAL
+
+								LDR					R1, FB:7
+								INCR					R1
+								STR					R1, FB:7
+								JMP					FOR4
+endFOR4						EQU					*
+
+								LDAR					R15, format3
+								SVC					#SVC_WRITE_TO_TERMINAL
+
+								ADJSP					#-2
+								POPR					R15
+								POPR					R3
+								POPR					R2
+								POPR					R1
+								RET
+
+;--------------------------------------------------------
+
+DATASEGMENT
+
+SVC_TERMINATE_PROCESS   EQU               100
+SVC_READ_FROM_TERMINAL  EQU               300
+SVC_WRITE_TO_TERMINAL   EQU               301
+
+;--------------------------------------------------------
+
+; DATA DEFINITIONS
+
+
+
+;--------------------------------------------------------
+
+END
+
+;--------------------------------------------------------
