@@ -1,6 +1,6 @@
 ;--------------------------------------------------------
 ;
-; Program Name:         p3.s16
+; Program Name:         p4.s16
 ; Date Last Modified:   09/28/2023
 ; Last Modified By:     Lauren Escobedo
 ;
@@ -12,9 +12,9 @@ CODESEGMENT
 
 main							EQU					*
 
-								PUSHR					R1						; Push register 1 to top of stack [space allocation - return value]
+								PUSHR					R1						; Push register 1 onto stack [space alloc - return value]
 								LDAR					R1, prompt1			; Load address of prompt1 into register 1
-								PUSHR					R1						; Push register 1 back onto top of stack [in by ref param]
+								PUSHR					R1						; Push register 1 onto stack [in by ref param]
 								CALL					GetInteger
 								POPR					R1						; Pop top of stack into register 1 [in by ref param]
 								POPR					R1						; Pop top of stack into register 1 [return value]
@@ -29,11 +29,13 @@ FOR1							EQU					*
 								CMPR					R1, R2
 								JMPP					R1, endFOR1
 
-;-------------------------------------------------------
-
-
-
-;-------------------------------------------------------
+								PUSHR					R1						; Space allocation
+								LDAR					R1, prompt2			; Load address of y into register 1
+								PUSHR					R1						; Push contents of register 1 onto top of stack
+								CALL					GetInteger			; Call getinteger
+								POPR					R1
+								POPR					R1						; Pop top of stack into register 1
+								STR					R1, y					; Store contents of register 1 into y
 
 								LDR					R1, y					; Load y into register 1
 								PUSHR					R1						; Push register 1 onto the stack [in param]
@@ -61,7 +63,20 @@ FOR2							EQU					*
 								CMPR					R1, R2
 								JMPP					R1, endFOR2
 
-; Provide missing code
+;========================================================
+
+; Filled in code
+
+								LDAR					R2, xs				; Load address of xs[i]
+								LDR					R1, i
+								ADDR					R1, R1
+								ADDR					R2, R1
+
+								PUSHR					R2						; Push register 1 onto the stack [io by ref param]
+								CALL					DoubleX
+								POPR					R1						; Pop top of stack into register 1 [trash]
+
+;========================================================
 
 								LDR					R1, i
 								INCR					R1
@@ -77,7 +92,20 @@ endFOR2						EQU					*
 								POPR					R1						; Pop top of stack into register 1 [in param]
 								POPR					R1						; Pop top of stack into register 1 [return value]
 
-; Provide missing code
+;========================================================
+
+; Filled in code
+
+								LDAR					R1, xs				; Load address of xs into register 1
+								PUSHR					R1						; Push contents of register 1 onto stack [io by ref param]
+								LDR					R1, n             ; Load n into register 1
+								PUSHR					R1						; Push contents of register 1 onto stack [in param]
+								CALL					DisplayXs2
+								POPR					R1						; Pop top of stack into register 1 [in param]
+								POPR					R1						; Pop top of stack into register 1 [return value]
+								STR					R1, xs				; Store contents of register 1 into xs
+
+;========================================================
 
                         SVC               #SVC_TERMINATE_PROCESS     ; Exit program
 
@@ -92,11 +120,11 @@ GetInteger					EQU					*
 								PUSHR					R15
 								SETFB					#-10
 
-								LDR					R15, FB:0
+								LDR					R15, FB:1
 								SVC					#SVC_WRITE_TO_TERMINAL
 
-								LDR					R15, format1
-								SVC					#SVC_WRITE_TO_TERMINAL
+								LDAR					R15, format1
+								SVC					#SVC_READ_FROM_TERMINAL
 
 								STR					R1, FB:0
 								POPR					R15
