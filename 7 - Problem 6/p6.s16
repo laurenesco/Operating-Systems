@@ -1,18 +1,85 @@
 ;--------------------------------------------------------
 ;
-; Program Name:         p3.s16
-; Date Last Modified:   09/09/2023
+; Program Name:         p6.s16
+; Date Last Modified:   11/01/2023
 ; Last Modified By:     Lauren Escobedo
 ;
-; Program Description:  Solution for "Problem 3" - OS
+; Program Description:  Solution for "Problem 6" - OS
 ;
 ;--------------------------------------------------------
+
+;----------------------------------------------------------
+; 	PROGRAM main()
+;    	*Note* main() uses an activation record to store *ALL*
+;       	variable local data. Constants are stored in
+;       	data-segment as static data.
+;----------------------------------------------------------
+; 	activation record on run-time stack
+;    	0: m
+;    	1: n
+;----------------------------------------------------------
 
 CODESEGMENT
 
 main                    EQU               *
 
+								ADJSP					#4									; Build activation record
+								SETFB					#-4
 
+								LDAR					R15, format1					; Get user input
+								SVC					#SVC_READ_FROM_TERMINAL
+								STR					R1, FB:0
+
+								PUSHR					R1									; Call A
+								LDR					R1, FB:0							; Push m
+								PUSHR					R1
+								LDR					R1, FB:1							; Push n
+								PUSHR					R1
+								PUSHFB
+								CALL					A
+								POPR					R1									; Pop n
+								POPR					R1									; Pop m
+								POPR					R3									; Pop return value
+
+								LDR					R1, FB:0							; Print output
+								LDR					R2, FB:1
+								LDAR					R15, format3
+								SVC					#SVC_WRITE_TO_TERMINAL
+
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+
+A								EQU					*									; Initialize and save registers
+								PUSHR					R1
+
+								ADJSP					#4									; Build activation record
+								SETFB					#-4
+
+								LDR					R1, FB:1							; If (m == 0) then { r = n + 1 }
+								JMPNZ					R1, else1
+								LDR					R1, FB:2
+								INCR					R1
+								STR					R1, FB:6
+								JMP					endIF1
+
+else1							EQU					*									; Else if (n == 0) then { r = A(m - 1, 1) }
+								LDR					R1, FB:2
+								JMPNZ					R1, else2
+								missing code
+								JMP					endIF2
+
+else2							EQU					*									; Else { t = A(m, n - 1); r = A(m - 1, t); }
+								missing code
+
+endIF2						EQU					*
+endIF1						EQU					*
+
+								LDR					R1, FB:6							; Return r
+								STR					R1, FB:0
+								ADJSP					#-4
+								POPR					R1
+								RET
+
+; - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
                         SVC               #SVC_TERMINATE_PROCESS     ; Exit program
 
@@ -23,12 +90,16 @@ DATASEGMENT
 SVC_TERMINATE_PROCESS   EQU               100
 SVC_READ_FROM_TERMINAL  EQU               300
 SVC_WRITE_TO_TERMINAL   EQU               301
+SVC_EOF						EQU					-1
+SVC_OK						EQU					0
 
 ;--------------------------------------------------------
 
 ; DATA DEFINITIONS
 
-
+format1						DS						"m: %1i"
+format2						DS						"n: %1i"
+format3						DS						"A(%1i, %2i) = %3i%n"
 
 ;--------------------------------------------------------
 
