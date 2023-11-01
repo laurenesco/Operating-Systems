@@ -1,0 +1,7 @@
+;-----------------------------------------------------------
+; Dr. Art Hanna
+; Problem #6 Beware of S16 stack overflow error!
+; Problem6.job
+;-----------------------------------------------------------
+$JOB NAME="Problem6" FILE="Problem6" STACK=16
+$END
