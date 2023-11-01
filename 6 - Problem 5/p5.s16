@@ -1,9 +1,11 @@
 ;----------------------------------------------------------
+;
 ; Program Name:			p5.s16
 ; Date Last Modified:	10/24/2023
 ; Last Modified By:		Lauren Escobedo
 ;
 ; Program Description:	S16 program to fulfill problem 5 for OS
+;
 ;----------------------------------------------------------
 
 ;
@@ -11,7 +13,7 @@
 ;    *Note* main() uses an activation record to store *ALL*
 ;       variable local data. Constants are stored in
 ;       data-segment as static data.
-;----------------------------------------------------------
+;
 ; activation record on run-time stack
 ;    0: n
 ;    1: i
@@ -20,70 +22,97 @@
 
 CODESEGMENT
 
-main               EQU       *
+main              EQU            *
 
-						 ; build activation record on run-time stack
-                   ADJSP     #6                            ; allocate local variables n,i,x
-                   SETFB     #-6
+                  ; build activation record on run-time stack
+                  ADJSP          #6                            ; allocate local variables n,i,x
+                  SETFB          #-6
 
-						 ; Input "n? " n
-                   LDAR      R15,format1
-                   SVC       #SVC_READ_FROM_TERMINAL
-                   STR       R1,FB:0
+                  ; Input "n? " n
+                  LDAR           R15,format1
+                  SVC            #SVC_READ_FROM_TERMINAL
+                  STR            R1,FB:0
 
-						 ; i := 0
-                   ZEROR     R1
-                   STR       R1,FB:1
+                  ; i := 0
+                  ZEROR          R1
+                  STR            R1,FB:1
 
-DO                 EQU       *
+DO                EQU            *
 
-						 ; i := i+1
-                   LDR       R1,FB:1
-                   INCR      R1
-                   STR       R1,FB:1
+                  ; i := i+1
+                  LDR            R1,FB:1
+                  INCR           R1
+                  STR            R1,FB:1
 
-						 ; Call GetRandomInt(1,10,x)
-                   LDR       R1,#1                         ; push LB parameter (IN pass-by-value)
-                   PUSHR     R1
-                   LDR       R1,#10                        ; push UB parameter (IN pass-by-value)
-                   PUSHR     R1
-                   PUSHR     R1                            ; push (dummy) x parameter (OUT pass-by-result)
-                   PUSHFB                                  ; save main() FB
-                   CALL      GetRandomInt
-                   POPFB                                   ; restore main() FB
-                   POPR      R1                            ; pop x parameter and store
-                   STR       R1,FB:2
-                   POPR      R1                            ; discard UB parameter
-                   POPR      R1                            ; discard LB parameter
+                  ; Call GetRandomInt(1,10,x)
+                  LDR            R1,#1                         ; push LB parameter (IN pass-by-value)
+                  PUSHR          R1
+                  LDR            R1,#10                        ; push UB parameter (IN pass-by-value)
+                  PUSHR          R1
+                  PUSHR          R1                            ; push (dummy) x parameter (OUT pass-by-result)
+                  PUSHFB     		                              ; save main() FB
+                  CALL           GetRandomInt
+                  POPFB                                        ; restore main() FB
+                  POPR           R1                            ; pop x parameter and store
+                  STR            R1,FB:2
+                  POPR           R1                            ; discard UB parameter
+                  POPR           R1                            ; discard LB parameter
 
 ; - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ; CALL ModifyX(x)
 
+						LDR				R1, FB:2
+						PUSHR				R1
+						PUSHFB
+						CALL				ModifyX
+						POPFB
+						POPR				R1
+						STR				R1, FB:2
+
 ; - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ; PRINT i,": ",x,ENDL
+
+						LDAR				R15, format2
+						LDR				R1, FB:1
+						LDR				R2, FB:2
+						SVC				#SVC_WRITE_TO_TERMINAL
+
 
 ; - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 ; WHILE ( (i < n) AND (x != 7) )
 
+						LDR				R1, FB:0								; n
+						LDR				R2, FB:1								; i
+						CMPR				R2, R1
+						JMPZ				R2, endDO
+
+						LDR				R1, FB:3								; x
+						LDR				R2, #7								; 7
+						CMPR				R1, R2
+						JMPZ				R1, endDO
+
+						JMP				DO
+
 ; - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-endDO              EQU       *
-                   ADJSP     #-6                           ; deallocate local variables n,i,x
-                   SVC       #SVC_TERMINATE_PROCESS
+endDO             EQU            *
+                  ADJSP          #-6                           ; deallocate local variables n,i,x
+                  SVC            #SVC_TERMINATE_PROCESS
 
 ;--------------------------------------------------
 ; PROCEDURE GetRandomInt(IN LB: INT,IN UB: INT,OUT rnd: INT)
 ;--------------------------------------------------
-GetRandomInt       EQU       *
-                   PUSHR     R1                            ; save registers on entry
-                   PUSHR     R2
-                   PUSHR     R15
 
-						 ; build activation record on run-time stack (no local variables)
-                   SETFB     #-16
+GetRandomInt      EQU            *
+                  PUSHR          R1                            ; save registers on entry
+                  PUSHR          R2
+                  PUSHR          R15
+
+                  ; build activation record on run-time stack (no local variables)
+                  SETFB          #-16
 
 ; activation record on run-time stack
 ;    0: LB (pass-by-value)
@@ -97,29 +126,30 @@ GetRandomInt       EQU       *
 
 ;    rnd := RandomInt(0,UB-LB)+LB
 
-                   LDR       R1,FB:1                       ; R15 := UB-LB
-                   LDR       R2,FB:0
-                   SUBR      R1,R2
-                   COPYR     R15,R1
-                   SVC       #SVC_GET_RANDOM_INTEGER       ; R15 := RandomInt(0,UB-LB)
-                   ADDR      R15,R2                        ; rnd := R15+LB
-                   STR       R15,FB:2
+                  LDR            R1,FB:1                       ; R15 := UB-LB
+                  LDR            R2,FB:0
+                  SUBR           R1,R2
+                  COPYR          R15,R1
+                  SVC            #SVC_GET_RANDOM_INTEGER       ; R15 := RandomInt(0,UB-LB)
+                  ADDR           R15,R2                        ; rnd := R15+LB
+                  STR            R15,FB:2
 
-                   POPR      R15                           ; restore registers on exit
-                   POPR      R2
-                   POPR      R1
-                   RET
+                  POPR           R15                           ; restore registers on exit
+                  POPR           R2
+                  POPR           R1
+                  RET
 ; END
 
 ;--------------------------------------------------
 ; PROCEDURE ModifyX(IO x: INT)
 ;--------------------------------------------------
-ModifyX            EQU       *
-                   PUSHR     R1                            ; save registers on entry
-                   PUSHR     R2
 
-						 ; build activation record on run-time stack (no local variables)
-                   SETFB     #-10
+ModifyX           EQU            *
+                  PUSHR          R1                            ; save registers on entry
+                  PUSHR          R2
+
+                  ; build activation record on run-time stack (no local variables)
+                  SETFB          #-10
 
 ; activation record on run-time stack
 ;    0: x (pass-by-value/result)
@@ -130,31 +160,37 @@ ModifyX            EQU       *
 
 ; - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-; x := 3*x+1
+                  ; x := 3*x+1
+						LDR				R1, FB:0
+						COPYR				R2, R1
+						ADDR				R1, R1
+						ADDR				R1, R2
+						INCR				R1
+						STR				R1, FB:0
 
 ; - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-						 POPR      R2                            ; restore registers on exit
-                   POPR      R1
-                   RET
+                  POPR           R2                            ; restore registers on exit
+                  POPR           R1
+                  RET
 
 ;----------------------------------------------------------
    DATASEGMENT
 ;----------------------------------------------------------
 ; ***Service request number definitions
-SVC_GET_CURRENT_TIME                   EQU      1
-SVC_GET_RANDOM_INTEGER                 EQU      2
-SVC_TERMINATE_PROCESS                  EQU    100
-SVC_READ_FROM_TERMINAL                 EQU    300
-SVC_WRITE_TO_TERMINAL                  EQU    301
+SVC_GET_CURRENT_TIME             EQU      1
+SVC_GET_RANDOM_INTEGER           EQU      2
+SVC_TERMINATE_PROCESS            EQU    100
+SVC_READ_FROM_TERMINAL           EQU    300
+SVC_WRITE_TO_TERMINAL            EQU    301
 
 ; ***Service request return code definitions
-SVC_EOF                                EQU     -1          ; Terminal input EOF
-SVC_OK                                 EQU      0          ; No error occurred
+SVC_EOF                          EQU     -1          ; Terminal input EOF
+SVC_OK                           EQU      0          ; No error occurred
 
 ; *** Static data
-format1            DS        "n? %1I"
-format2            DS        "%1I: %2I%n"
+format1           DS             "n? %1I"
+format2           DS             "%1I: %2I%n"
 
 END
 
