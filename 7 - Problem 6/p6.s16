@@ -30,6 +30,10 @@ main                    EQU               *
 								SVC					#SVC_READ_FROM_TERMINAL
 								STR					R1, FB:0
 
+								LDAR              R15, format2               ; Get user input
+                        SVC               #SVC_READ_FROM_TERMINAL
+                        STR               R1, FB:1
+
 								PUSHR					R1									; Call A
 								LDR					R1, FB:0							; Push m
 								PUSHR					R1
@@ -37,6 +41,7 @@ main                    EQU               *
 								PUSHR					R1
 								PUSHFB
 								CALL					A
+								POPFB
 								POPR					R1									; Pop n
 								POPR					R1									; Pop m
 								POPR					R3									; Pop return value
@@ -45,14 +50,17 @@ main                    EQU               *
 								LDR					R2, FB:1
 								LDAR					R15, format3
 								SVC					#SVC_WRITE_TO_TERMINAL
+								ADJSP					#-4
+
+								SVC					#SVC_TERMINATE_PROCESS
 
 ; - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
 A								EQU					*									; Initialize and save registers
 								PUSHR					R1
 
-								ADJSP					#4									; Build activation record
-								SETFB					#-4
+								ADJSP					#4									; Build activation record, allocating for r, t
+								SETFB					#-16
 
 								LDR					R1, FB:1							; If (m == 0) then { r = n + 1 }
 								JMPNZ					R1, else1
@@ -64,11 +72,75 @@ A								EQU					*									; Initialize and save registers
 else1							EQU					*									; Else if (n == 0) then { r = A(m - 1, 1) }
 								LDR					R1, FB:2
 								JMPNZ					R1, else2
-								missing code
+
+								; - - - - - - - - - - - - -
+
+								PUSHR					R1
+								LDR					R1, FB:1
+								DECR					R1
+								PUSHR					R1
+								LDR					R1, #1
+								PUSHR					R1
+								PUSHFB
+								CALL					A
+								POPFB
+								POPR					R1
+								POPR					R1
+								POPR					R1
+								STR					R1, FB:6
+
+                        ; - - - - - - - - - - - - -
+
 								JMP					endIF2
 
 else2							EQU					*									; Else { t = A(m, n - 1); r = A(m - 1, t); }
-								missing code
+
+                        ; - - - - - - - - - - - - -
+
+								; t = A(m, n - 1)
+
+								PUSHR					R1									; Push space for return value
+
+								LDR					R1, FB:1							; Push m
+								PUSHR					R1
+
+								LDR					R1, FB:2							; Push n-1
+								DECR					R1
+								PUSHR					R1
+
+								PUSHFB													; Push FB
+
+								CALL 					A
+
+								POPFB														; Pop contents
+								POPR					R1
+								POPR					R1
+								POPR					R1
+								STR					R1, FB:7						; Save return value into t
+
+								; r = A(m - 1, t)
+
+								PUSHR					R1									; Push space for return value
+
+								LDR					R1, FB:1							; Push m-1
+								DECR					R1
+								PUSHR					R1
+
+								LDR					R1, FB:7							; Push t
+								PUSHR					R1
+
+								PUSHFB
+
+								CALL					A
+
+								POPFB                                        ; Pop contents
+                        POPR              R1
+                        POPR              R1
+                        POPR              R1
+                        STR               R1, FB:6                  ; Save return value into r
+
+								; - - - - - - - - - - - - -
+
 
 endIF2						EQU					*
 endIF1						EQU					*
@@ -80,8 +152,6 @@ endIF1						EQU					*
 								RET
 
 ; - - - - - - - - - - - - - - - - - - - - - - - - - - - -
-
-                        SVC               #SVC_TERMINATE_PROCESS     ; Exit program
 
 ;--------------------------------------------------------
 
