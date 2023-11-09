@@ -67,7 +67,7 @@ SVC_EOF                                EQU     -1          ; Terminal input EOF
 SVC_OK                                 EQU      0          ; No error occurred
 
 ; *** Static data
-format1            DS        "N? %1I"
+format1            DS        "n? %1I"
 format2            DS        "sum = %1U%n"
 
    END

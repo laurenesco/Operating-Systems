@@ -1,18 +1,58 @@
 ;--------------------------------------------------------
 ;
-; Program Name:         Job3.s16
+; Program Name:         Job4.s16
 ; Date Last Modified:   11/09/2023
 ; Last Modified By:     Lauren Escobedo
 ;
-; Program Description:  Solution for "Problem 7" - OS
+; Program Description:  Partial solution for "Problem 7" - OS
 ;
 ;--------------------------------------------------------
+
+; main() activation record
+;  0: n
+;  1: i
+;  2: sum
 
 CODESEGMENT
 
 main                    EQU               *
 
+								ADJSP					#6									; Allocate space for n, i, sum
+								SETFB					#-6
 
+								LDAR					R15, format1					; Get user input and store in "n"
+								SVC					#SVC_READ_FROM_TERMINAL
+								STR					R1, FB:0
+
+								LDR					R1, #0							; Set i to 0
+								STR					R1, FB:1
+
+								LDR					R1, #0							; Set sum to 0
+								STR					R1, FB:2
+
+IF1							EQU					*
+
+                        LDR               R1, FB:1                   ; Jump if !(i <= n)
+                        LDR               R2, FB:0
+                        CMPR              R1, R2
+                        JMPP              R1, endIF1
+
+								LDR					R1, FB:1							; sum += i
+								LDR					R2, FB:2
+								ADDR					R1, R2
+								STR					R1, FB:2
+
+								LDR					R1, FB:1							; i++
+								INCR					R1
+								STR					R1, FB:1
+
+								JMP					IF1								; Restart conditional
+
+endIF1						EQU					*
+
+								LDAR					R15, format2					; Print output
+								LDR					R1, FB:2
+								SVC					#SVC_WRITE_TO_TERMINAL
 
                         SVC               #SVC_TERMINATE_PROCESS     ; Exit program
 
@@ -28,7 +68,8 @@ SVC_WRITE_TO_TERMINAL   EQU               301
 
 ; DATA DEFINITIONS
 
-
+format1						DS						"n? %1i"
+format2						DS						"sum = %1u%n"
 
 ;--------------------------------------------------------
 
