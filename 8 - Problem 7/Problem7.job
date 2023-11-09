@@ -1,0 +1,10 @@
+;--------------------------------------------------
+; Dr. Art Hanna
+; Problem #7
+; Problem7.job
+;--------------------------------------------------
+$JOB NAME="Job1" FILE="Job1"
+$JOB NAME="Job2" FILE="Job2"
+$JOB NAME="Job3" FILE="Job3"
+$JOB NAME="Job4" FILE="Job4"
+$END
