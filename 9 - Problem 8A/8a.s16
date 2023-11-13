@@ -1,0 +1,104 @@
+;--------------------------------------------------------
+;
+; Program Name:         8a.s16
+; Date Last Modified:   11/13/2023
+; Last Modified By:     Lauren Escobedo
+;
+; Program Description:  Code for "Problem 8a" - OS
+;
+;--------------------------------------------------------
+
+; -------------------------------------
+; activation record on run-time stack
+; 0: n
+; 1: iterates
+; -------------------------------------
+
+CODESEGMENT
+
+main                    EQU               *
+
+								ADJSP					#4									; construct activation record
+								SETFB					#-4
+
+								LDAR					R15, format1					; get user input for n
+								SVC					#SVC_READ_FROM_TERMINAL
+								STR					R1, FB:0
+
+								ZEROR					R0									; iterates = 0
+								STR					R0, FB:1
+
+WHILE							EQU					*									; while n != 1
+								LDR					R1, #1
+								LDR					R2, FB:0
+								CMPR					R1, R2
+								JMPZ					R1, endWHILE
+
+								LDR					R1, FB:0							; if n is even then
+								LSRR					R1
+								SLR					R1
+								LDR					R2, FB:0
+								CMPR					R1, R2
+								JMPNZ					R1, ELSE
+
+								LDR					R1, FB:0							; n = n/2
+								ASRR					R1
+								STR					R1, FB:0
+
+								LDR					R1, FB:1							; iterates += 1
+								INCR					R1
+								STR					R1, FB:1
+
+								LDR					R1, FB:0							; print "n = ", n, endl
+								LDAR					R15, format2
+								SVC					#SVC_WRITE_TO_TERMINAL
+								JMP					endIF
+
+ELSE							EQU					*									; n = 3n + 1
+								LDR					R2, FB:0
+								SLR					R2
+								LDR					R1, FB:0
+								ADDR					R1, R2
+								INCR					R1
+								STR					R1, FB:0
+
+								LDR					R1, FB:1							; iterates += 1
+								INCR					R1
+								STR					R1, FB:1
+
+								LDR					R1, FB:0
+								LDAR					R15, format2
+								SVC					#SVC_WRITE_TO_TERMINAL		; print "n = ", n, endl
+
+endIF							EQU					*									; end if
+								JMP					WHILE
+
+endWHILE						EQU					*									; end while
+								LDAR					R15, format3					; print "iterates = ", iterates, endl
+								LDR					R1, FB:1
+								SVC					#SVC_WRITE_TO_TERMINAL
+								ADJSP					#-4
+
+                        SVC               #SVC_TERMINATE_PROCESS     ; Exit program
+
+;--------------------------------------------------------
+
+DATASEGMENT
+
+SVC_TERMINATE_PROCESS   EQU               100
+SVC_READ_FROM_TERMINAL  EQU               300
+SVC_WRITE_TO_TERMINAL   EQU               301
+
+;--------------------------------------------------------
+
+; DATA DEFINITIONS
+
+format1						DS						"n: %1i"
+format2						DS						"n = %1i%n"
+format3						DS						"iterates = %1i%n"
+
+;--------------------------------------------------------
+
+END
+
+;--------------------------------------------------------
