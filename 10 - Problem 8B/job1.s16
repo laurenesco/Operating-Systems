@@ -1,18 +1,87 @@
 ;--------------------------------------------------------
 ;
-; Program Name:         p3.s16
-; Date Last Modified:   09/09/2023
+; Program Name:         job1.s16
+; Date Last Modified:   11/16/2023
 ; Last Modified By:     Lauren Escobedo
 ;
-; Program Description:  Solution for "Problem 3" - OS
+; Program Description:  Partial solution for "Problem 8A" - OS
 ;
 ;--------------------------------------------------------
 
 CODESEGMENT
 
+; - - - - - - - - - - - - - - - - - - - - -
+; Activation record on run-time stack
+;		0: LBPageNumber
+;		1: UBPageNumber
+;		2: 'M'
+;		3: 'S'
+;		4: '1'
+;		5: 0X0000
+;		6: MS1Handle
+;		7: address-of n in MS1
+;		8: address-of iterates in MS1
+; - - - - - - - - - - - - - - - - - - - - -
+
 main                    EQU               *
 
+								ADJSP					#18								; build activation record
+								SETFB					#-18
 
+								LDR					R1, #LBPageNumber				; create 1 page memory segment MS1
+								STR					R1, FB:0
+								LDR					R1, #LBPageNumber
+								STR					R1, FB:1
+								LDR					R1, #'M'
+								STR					R1, FB:2
+								LDR					R1, #'S'
+								STR					R1, FB:3
+								LDR					R1, #'1'
+								STR					R1, FB:4
+								LDR					R1, #0X0000
+								STR					R1, FB:5
+								LDAR					R15, FB:0
+								SVC					#SVC_CREATE_MEMORY_SEGMENT
+								STR					R15, FB:6
+
+								LDR					R1, #LBPageNumber				; address of n = LBPageNumber*512
+								LDR					R2, #512
+								MULR					R1, R2
+								STR					R1, FB:7
+
+								LDR					R1, #LBPageNumber				; address of iterates = (LBPageNumber*512)+2
+								LDR					R2, #512
+								MULR					R1, R2
+								LDR					R2, #2
+								ADDR					R1, R2
+								STR					R1, FB:8
+
+								LDAR					R15, format1					; Get user input for n
+								SVC					#SVC_READ_FROM_TERMINAL
+								STR					R1, @FB:7
+
+								ZEROR					R0									; iterates = 0
+								STR					R0, @FB:8
+
+WHILE							EQU					*									; while n != 1
+								LDR					R1, #1
+								LDR					R2, @FB:7
+								CMPR					R1, R2
+								JMPZ					R1, endWHILE
+
+								SVC					#SVC_DO_NOTHING				; Force context switch
+
+								JMP					WHILE
+
+endWHILE						EQU					*
+
+								LDAR					R15, format2					; Print output
+								LDR					R1, @FB:8
+								SVC					#SVC_WRITE_TO_TERMINAL
+
+								LDR					R15, FB:6						; Destroy memory segment
+								SVC					#SVC_DESTROY_MEMORY_SEGMENT
+								ADJSP					#-18
 
                         SVC               #SVC_TERMINATE_PROCESS     ; Exit program
 
@@ -20,15 +89,20 @@ main                    EQU               *
 
 DATASEGMENT
 
-SVC_TERMINATE_PROCESS   EQU               100
-SVC_READ_FROM_TERMINAL  EQU               300
-SVC_WRITE_TO_TERMINAL   EQU               301
+SVC_DO_NOTHING					EQU					0
+SVC_TERMINATE_PROCESS   	EQU               100
+SVC_READ_FROM_TERMINAL  	EQU               300
+SVC_WRITE_TO_TERMINAL   	EQU               301
+SVC_CREATE_MEMORY_SEGMENT	EQU					500
+SVC_DESTROY_MEMORY_SEGMENT EQU					501
 
 ;--------------------------------------------------------
 
 ; DATA DEFINITIONS
 
-
+LBPageNumber					EQU					5
+format1							DS						"n: %1i%n"
+format2							DS						"iterates = %1i%n"
 
 ;--------------------------------------------------------
 
