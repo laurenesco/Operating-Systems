@@ -3,7 +3,7 @@
 ; Problem #8B (3-job master, even-n-slave, odd-n-slave solution)
 ; Problem8B.job
 ;--------------------------------------------------
-$JOB NAME="Job1" FILE="Job1"
-$JOB NAME="Job2" FILE="Job2" ARRIVAL=200
-$JOB NAME="Job3" FILE="Job3" ARRIVAL=200
+$JOB NAME="job1" FILE="job1"
+$JOB NAME="job2" FILE="job2" ARRIVAL=200
+$JOB NAME="job3" FILE="job3" ARRIVAL=200
 $END

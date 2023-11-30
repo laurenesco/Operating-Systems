@@ -1,34 +1,101 @@
 ;--------------------------------------------------------
 ;
-; Program Name:         p3.s16
-; Date Last Modified:   09/09/2023
+; Program Name:         job2.s16
+; Date Last Modified:   11/29/2023
 ; Last Modified By:     Lauren Escobedo
 ;
-; Program Description:  Solution for "Problem 3" - OS
+; Program Description:  Job3 for "Problem 8B" - OS
 ;
 ;--------------------------------------------------------
 
 CODESEGMENT
 
+; - - - - - - - - - - - - - - - - - - - - -
+; Activation record on run time stack
+;		0: MS1Handle
+;		1: address of n in MS1
+;		2: address of iterates in MS1
+; - - - - - - - - - - - - - - - - - - - - -
+
 main                    EQU               *
 
+								ADJSP					#6											; build activation record
+								SETFB					#-6
 
+								LDR					R1, #LBPageNumber						; address of n = LBPageNumber*512
+								LDR					R2, #512
+								MULR					R1, R2
+								STR					R1, FB:1
 
-                        SVC               #SVC_TERMINATE_PROCESS     ; Exit program
+								LDR					R1, LBPageNumber						; address of n = LBPageNumber*512 + 2
+								LDR					R2, #512
+								MULR					R1, R2
+								LDR					R2, #2
+								ADDR					R1, R2
+								STR					R1, FB:2
+
+								LDAR					R15, MS1Name							; get handle of mem segment resource name "MS1"
+								SVC					#SVC_WAIT_FOR_RESOURCE_HANDLE
+								STR					R15, FB:0
+
+								LDR					R15, FB:0
+								SVC					#SVC_SHARE_MEMORY_SEGMENT			; share mem segment resource name "MS1"
+
+WHILE							EQU					*											; while n != 1
+								LDR					R1, #1
+								LDR					R2, @FB:1
+								CMPR					R1, R2
+								JMPZ					R1, endWHILE
+
+								LDR					R1, @FB:1								; if n is even
+								LSRR					R1
+								SLR					R1
+								LDR					R2, @FB:1
+								CMPR					R1, R2
+								JMPNZ					R1, endIF
+
+								LDR					R1, @FB:1								; n /= 2
+							   ASRR					R1
+								STR					R1, @FB:1
+
+								LDR					R1, @FB:2								; iterates ++
+								INCR					R1
+								STR					R1, @FB:2
+
+								LDR					R1, @FB:1								; print output
+								LDAR					R15, format1
+								SVC					#SVC_WRITE_TO_TERMINAL
+
+endIF							EQU					*
+								JMP					WHILE
+
+endWHILE						EQU					*
+								LDR					R15, FB:0								; unshare mem segment resource name "MS1"
+								SVC					#SVC_UNSHARE_MEMORY_SEGMENT
+
+								ADJSP					#-6										; deallocate local variables
+
+                        SVC               #SVC_TERMINATE_PROCESS     		; Exit program
 
 ;--------------------------------------------------------
 
 DATASEGMENT
 
-SVC_TERMINATE_PROCESS   EQU               100
-SVC_READ_FROM_TERMINAL  EQU               300
-SVC_WRITE_TO_TERMINAL   EQU               301
+SVC_DO_NOTHING							EQU					0
+SVC_TERMINATE_PROCESS   			EQU               100
+SVC_WAIT_FOR_RESOURCE_HANDLE		EQU					202
+SVC_READ_FROM_TERMINAL  			EQU               300
+SVC_WRITE_TO_TERMINAL   			EQU               301
+SVC_SHARE_MEMORY_SEGMENT			EQU					502
+SVC_UNSHARE_MEMORY_SEGMENT			EQU					503
 
 ;--------------------------------------------------------
 
 ; DATA DEFINITIONS
 
-
+LBPageNumber				EQU					5
+MS1Name						DS						"MS1"
+format1						DS						"n = %1i%n"
 
 ;--------------------------------------------------------
 
