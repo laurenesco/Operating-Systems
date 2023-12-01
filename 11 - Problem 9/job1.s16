@@ -63,6 +63,11 @@ main                    EQU               *
 								ZEROR					R0									; iterates = 0
 								STR					R0, @FB:8
 
+								LDAR					R15, job2						; create the child processes
+								SVC					#SVC_CREATE_CHILD_PROCESS
+								LDAR					R15, job3
+								SVC					#SVC_CREATE_CHILD_PROCESS
+
 WHILE							EQU					*									; while n != 1
 								LDR					R1, #1
 								LDR					R2, @FB:7
@@ -91,6 +96,7 @@ DATASEGMENT
 
 SVC_DO_NOTHING					EQU					0
 SVC_TERMINATE_PROCESS   	EQU               100
+SVC_CREATE_CHILD_PROCESS	EQU					150
 SVC_READ_FROM_TERMINAL  	EQU               300
 SVC_WRITE_TO_TERMINAL   	EQU               301
 SVC_CREATE_MEMORY_SEGMENT	EQU					500
@@ -103,6 +109,8 @@ SVC_DESTROY_MEMORY_SEGMENT EQU					501
 LBPageNumber					EQU					5
 format1							DS						"n: %1i%n"
 format2							DS						"iterates = %1i%n"
+job2								DS						"job2"
+job3								DS						"job3"
 
 ;--------------------------------------------------------
 
