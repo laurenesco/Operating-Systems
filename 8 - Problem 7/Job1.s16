@@ -68,7 +68,7 @@ SVC_OK                                 EQU      0          ; No error occurred
 
 ; *** Static data
 format1            DS        "n? %1I"
-format2            DS        "sum = %1U%n"
+format2            DS        "sum = %1u%n"
 
    END
 
