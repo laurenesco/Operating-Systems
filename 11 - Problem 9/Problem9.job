@@ -1,0 +1,7 @@
+;--------------------------------------------------
+; Dr. Art Hanna & Lauren Escobedo
+; Problem #9 (3-job parent, even-n-child, odd-n-child solution)
+; Problem9.job
+;--------------------------------------------------
+$JOB NAME="job1" FILE="job1"
+$END
