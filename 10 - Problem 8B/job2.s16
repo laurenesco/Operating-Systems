@@ -4,7 +4,7 @@
 ; Date Last Modified:   11/29/2023
 ; Last Modified By:     Lauren Escobedo
 ;
-; Program Description:  Job3 for "Problem 8B" - OS
+; Program Description:  Job2 for "Problem 8B" - OS
 ;
 ;--------------------------------------------------------
 
@@ -27,7 +27,7 @@ main                    EQU               *
 								MULR					R1, R2
 								STR					R1, FB:1
 
-								LDR					R1, LBPageNumber						; address of n = LBPageNumber*512 + 2
+								LDR					R1, #LBPageNumber						; address of n = LBPageNumber*512 + 2
 								LDR					R2, #512
 								MULR					R1, R2
 								LDR					R2, #2
@@ -67,6 +67,7 @@ WHILE							EQU					*											; while n != 1
 								SVC					#SVC_WRITE_TO_TERMINAL
 
 endIF							EQU					*
+								SVC					#SVC_DO_NOTHING						; force context switch
 								JMP					WHILE
 
 endWHILE						EQU					*
