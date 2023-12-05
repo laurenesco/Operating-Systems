@@ -1,0 +1,37 @@
+;--------------------------------------------------------
+;
+; Program Name:         p3.s16
+; Date Last Modified:   09/09/2023
+; Last Modified By:     Lauren Escobedo
+;
+; Program Description:  Solution for "Problem 3" - OS
+;
+;--------------------------------------------------------
+
+CODESEGMENT
+
+main                    EQU               *
+
+
+
+                        SVC               #SVC_TERMINATE_PROCESS     ; Exit program
+
+;--------------------------------------------------------
+
+DATASEGMENT
+
+SVC_TERMINATE_PROCESS   EQU               100
+SVC_READ_FROM_TERMINAL  EQU               300
+SVC_WRITE_TO_TERMINAL   EQU               301
+
+;--------------------------------------------------------
+
+; DATA DEFINITIONS
+
+
+
+;--------------------------------------------------------
+
+END
+
+;--------------------------------------------------------
