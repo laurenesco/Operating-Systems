@@ -1,20 +1,151 @@
 ;--------------------------------------------------------
 ;
-; Program Name:         p3.s16
-; Date Last Modified:   09/09/2023
+; Program Name:         final.s16
+; Date Last Modified:   12/05/2023
 ; Last Modified By:     Lauren Escobedo
 ;
-; Program Description:  Solution for "Problem 3" - OS
+; Program Description:  Solution for Final Exam - OS
 ;
 ;--------------------------------------------------------
 
 CODESEGMENT
 
+; - - - - - - - - - - - - - - - - - - -
+; activation record on run time stack
+; 	0: n
+;	1: i
+; - - - - - - - - - - - - - - - - - - -
+
 main                    EQU               *
 
+								ADJSP					#+4								; allocate local variables
+								SETFB					#-4
 
+								LDAR					R15, format1					; input n
+								SVC					#SVC_READ_FROM_TERMINAL
+								STR					R1, FB:0
 
+								ZEROR					R1									; initialize i
+								STR					R1, FB:1
+
+for							EQU					*									; for i = 0 to n by 1
+
+								LDR					R1, FB:1							; end loop if i > n
+								LDR					R2, FB:0
+								CMPR					R1, R2
+								JMPZ					R1, endfor
+
+								PUSHR					R1
+								LDR					R1, FB:1
+								PUSHR					R1
+								PUSHFB
+								CALL					F									; call F
+								POPFB
+								POPR					R1									; pop i off stack
+								POPR					R2									; store return value
+
+								LDR					R3, FB:1							; print output
+								LDAR					R15, format2
+								SVC					#SVC_WRITE_TO_TERMINAL
+
+								LDR					R2, FB:1							; incrememt i
+								INCR					R2
+								STR					R2, FB:1
+
+								JMP					for
+
+endfor						EQU					*
+
+								ADJSP					#-4								; deallocate local variables
                         SVC               #SVC_TERMINATE_PROCESS     ; Exit program
+
+;--------------------------------------------------------
+
+F								EQU					*
+
+								PUSHR					R1
+								PUSHR					R2
+
+								ADJSP					#6
+								SETFB					#-18
+
+; if i = 0 then
+
+if								EQU					*
+								ZEROR					R1
+								LDR					R2, FB:1
+								CMPR					R1, R2
+								JMPNZ					R1, elseif
+
+;	r = 0
+
+								ZEROR					R1
+								STR					R1, FB:6
+								JMP					endif
+
+; else if i = 1 then
+
+elseif						EQU					*
+								LDR					R1, #1
+								LDR					R2, FB:1
+								CMPR					R1, R2
+								JMPNZ					R1, else
+
+;	r = 1
+
+								LDR					R1, #1
+								STR					R1, FB:6
+								JMP					endif
+
+; else
+
+else							EQU					*
+
+;	f2 = F(i-2)
+
+								PUSHR					R1
+								LDR					R1, FB:1
+								DECR					R1
+								DECR					R1
+								PUSHR					R1
+								PUSHFB
+								CALL					F
+								POPFB
+								POPR					R1
+								POPR					R1
+								STR					R1, FB:7
+
+;	f1 = F(i-1)
+
+                        PUSHR             R1
+                        LDR               R1, FB:1
+                        DECR              R1
+                        PUSHR             R1
+                        PUSHFB
+                        CALL              F
+                        POPFB
+                        POPR              R1
+                        POPR              R1
+                        STR               R1, FB:8
+
+;	r = f2 + f1
+
+								LDR					R1, FB:7
+								LDR					R2, FB:8
+								ADDR					R1, R2
+								STR					R1, FB:6
+
+endif							EQU					*
+
+; return r
+
+								LDR					R1, FB:6
+								STR					R1, FB:0
+								ADJSP					#-6
+								POPR					R2
+								POPR					R1
+
+RET
 
 ;--------------------------------------------------------
 
@@ -28,7 +159,8 @@ SVC_WRITE_TO_TERMINAL   EQU               301
 
 ; DATA DEFINITIONS
 
-
+format1						DS						"n [0,24]: %1i"
+format2						DS						"F(%3i) = %2u%n"
 
 ;--------------------------------------------------------
 
